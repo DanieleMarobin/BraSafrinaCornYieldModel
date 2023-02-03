@@ -27,8 +27,8 @@ for key in st.session_state.keys():
 # Analysis preferences
 if True:    
     ref_year=2023
-    file='Data/Models/BRA Con Safrina Yield/GA_safrina_4'
-    id=91
+    file='Data/Models/BRA Con Safrina Yield/GA_safrina_7'
+    id=225
 
     # this should cover the 'yield development' window (so we can see the full evolution)
     ref_year_start=dt(ref_year-1,9,1)
@@ -44,7 +44,8 @@ if True:
     # Runs Info
     runs_df=gd.read_csv(GV.W_LAST_UPDATE_FILE)
     runs_df=runs_df.set_index('model_full')
-    st.write('Runs used for the estimates'); st.dataframe(runs_df[['Latest Available Run','Completed (%)','Completed','of']])
+    st.write('Runs used for the estimates')
+    st.dataframe(runs_df[['Latest Available Run','Completed (%)','Completed','of']])
     st.markdown("---")
 
     yields={}
@@ -113,7 +114,7 @@ if full_analysis:
     s=GV.WD_H_ECMWF_EN;fu.add_series(chart,x=yields[s].index, y=yields[s].values, name=s, color='orange')
     s=GV.WD_HIST;fu.add_series(chart,x=yields[s].index, y=yields[s].values, name=s, color='green')
 
-    st.plotly_chart(chart)
+    st.plotly_chart(chart, use_container_width=True)
 
 # Coefficients
 if True:    
@@ -122,8 +123,11 @@ if True:
     st_model_coeff.index=['Model Coefficients']
 
     st.markdown('---')
+    st.markdown('##### Variables impact visualization')
+    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start)
+    st.plotly_chart(fig, use_container_width=True)
     st.markdown('##### Coefficients')
-    st.dataframe(st_model_coeff)
+    st.dataframe(st_model_coeff, use_container_width=True)
     st.markdown('---')
 
 # Prediction DataSets

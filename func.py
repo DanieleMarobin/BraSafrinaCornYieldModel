@@ -1,6 +1,7 @@
 import re
 import numpy as np
 from datetime import datetime as dt
+from datetime import timedelta
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -8,7 +9,6 @@ import Weather as uw
 import GLOBAL as GV
 
 # Data
-
 def get_CONAB_df():
     url = 'https://portaldeinformacoes.conab.gov.br/downloads/arquivos/SerieHistoricaGraos.txt'
 
@@ -199,4 +199,68 @@ def update_layout(fig,marker_size,line_width,width,height):
     fig.update_layout(autosize=True,font=dict(size=12),hovermode="x unified",margin=dict(l=20, r=20, t=50, b=20))
     fig.update_layout(width=width,height=height)
 
+def seas_day(date, ref_year_start= dt(GV.CUR_YEAR,1,1)):
+    """
+    'seas_day' is the X-axis of the seasonal plot:
+            - it makes sure to include 29 Feb
+            - it is very useful in creating weather windows
+    """
 
+    start_idx = 100 * ref_year_start.month + ref_year_start.day
+    date_idx = 100 * date.month + date.day
+
+    if (start_idx<300):
+        if (date_idx>=start_idx):
+            return dt(GV.LLY, date.month, date.day)
+        else:
+            return dt(GV.LLY+1, date.month, date.day)
+    else:
+        if (date_idx>=start_idx):
+            return dt(GV.LLY-1, date.month, date.day)
+        else:
+            return dt(GV.LLY, date.month, date.day)
+
+def visualize_model_ww(model, ref_year_start):
+    fig = go.Figure()
+    year = GV.LLY
+    var_dict={}
+    legend=[]
+
+    for c in (x for x  in model.params.index if '-' in x):
+        split=re.split('_|-',c)
+        v = split[0]+'_'+split[1]
+        coeff = model.params[c]           
+
+        if len(split)>1:
+            d_start = dt.strptime(split[2]+str(year),'%b%d%Y')
+            d_end = dt.strptime(split[3]+str(year),'%b%d%Y')
+
+            start = seas_day(d_start, ref_year_start)
+            end = seas_day(d_end, ref_year_start)
+
+
+            index = (np.arange(start, end + timedelta(days = 1), dtype='datetime64[D]'))
+            data = np.full(len(index), coeff)
+            
+            if v in var_dict:
+                var_dict[v].append(pd.Series(data=data,index=index))
+            else:
+                var_dict[v]=[pd.Series(data=data,index=index)]
+            
+
+    var_dict.keys()
+    for v, series_list in var_dict.items():
+        var_coeff=pd.concat(series_list,axis=1).sum(axis=1)
+
+        if ('Temp' in v):
+            color='orange'
+        elif ('Sdd' in v):
+            color='red'                        
+        else:
+            color='blue'
+
+        fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8),  showlegend=True))
+    
+    fig.update_layout(height=600, legend=dict(orientation="h",yanchor="bottom",y=1.1,xanchor="left",x=0))
+    fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black',tickformat="%d %b")
+    return fig
