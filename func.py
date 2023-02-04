@@ -261,6 +261,10 @@ def visualize_model_ww(model, ref_year_start):
 
         fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8),  showlegend=True))
     
-    fig.update_layout(height=600, legend=dict(orientation="h",yanchor="bottom",y=1.1,xanchor="left",x=0))
-    fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black',tickformat="%d %b")
+    # add today line
+    fig.add_vline(x=seas_day(dt.today(), ref_year_start).timestamp() * 1000, line_dash="dash",line_width=1, annotation_text="Today", annotation_position="bottom")
+
+    fig.update_layout(height=750, legend=dict(orientation="h",yanchor="bottom",y=1.1,xanchor="left",x=0))
+    fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
+    fig.update_xaxes(tickformat="%d %b")
     return fig

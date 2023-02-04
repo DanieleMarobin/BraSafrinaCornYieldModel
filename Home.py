@@ -23,7 +23,6 @@ st.set_page_config(page_title='Safrina Corn Model',layout="wide",initial_sidebar
 for key in st.session_state.keys():
     del st.session_state[key]
 
-
 # Analysis preferences
 if True:    
     ref_year=2023
