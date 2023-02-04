@@ -115,31 +115,53 @@ if full_analysis:
 
     st.plotly_chart(chart, use_container_width=True)
 
-# Coefficients
+# Variables impact visualization & Coefficients
 if True:    
+    st.markdown('---')
+    st.markdown('##### Variables impact visualization')
+    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start, train_df=train_df)
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown('##### Coefficients')
     st_model_coeff=pd.DataFrame(columns=model.params.index)
     st_model_coeff.loc[len(st_model_coeff)]=model.params.values
     st_model_coeff.index=['Model Coefficients']
-
-    st.markdown('---')
-    st.markdown('##### Variables impact visualization')
-    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start)
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown('##### Coefficients')
     st.dataframe(st_model_coeff, use_container_width=True)
     st.markdown('---')
 
 # Prediction DataSets
 if True:
     for i, WD in enumerate(pred_df):
+        first_cols=['Yield','year','const']
+        sorted_cols= first_cols+list(set(pred_df[WD].columns)-set(first_cols))
+
         pred_df[WD]['Yield']=yields[WD] # Copying the yields in the df so that it is not an ugly NaN
         st.markdown('##### Prediction DataSet - ' + WD)
-        st.dataframe(pred_df[WD].drop(columns=['const']).sort_index(ascending=False))
+        st.dataframe(pred_df[WD][sorted_cols].drop(columns=['const']).sort_index(ascending=False), use_container_width=True)
+
+        if WD is not 'trend':
+            yield_df=pd.concat([pred_df[WD], pred_df['trend']])
+
+            yield_contribution=yield_df.drop(columns=['Yield']) * model.params            
+            yield_contribution['Yield']=yield_contribution.sum(axis=1)
+            yield_contribution['const']=yield_contribution['const']+yield_contribution['year']
+            
+            yield_contribution.index=[WD + ' Yield - Components', 'trend Yield - Components']
+            
+            yield_contribution.loc['Difference']=yield_contribution.loc[WD + ' Yield - Components']- yield_contribution.loc['trend Yield - Components']
+            # yield_contribution=yield_contribution.drop(columns=['year'])
+
+            yield_contribution=pd.concat([yield_df, yield_contribution])
+            yield_contribution=yield_contribution[sorted_cols].drop(columns=['year'])
+            yield_contribution.index=[WD,'trend',WD + ' Yield - Components', 'trend Yield - Components','Difference']
+            
+            st.dataframe(yield_contribution,use_container_width=True)
+
 
 # Training DataSet
 if True:
     st.markdown('##### Training DataSet')
-    st.dataframe(train_df.sort_index(ascending=False))
+    st.dataframe(train_df.sort_index(ascending=False), use_container_width=True)
     st.markdown("---")
 
 # Model Summary

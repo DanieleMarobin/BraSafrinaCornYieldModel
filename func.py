@@ -220,7 +220,8 @@ def seas_day(date, ref_year_start= dt(GV.CUR_YEAR,1,1)):
         else:
             return dt(GV.LLY, date.month, date.day)
 
-def visualize_model_ww(model, ref_year_start):
+def visualize_model_ww(model, ref_year_start, train_df=None):
+    train_df_mean=train_df.mean()
     fig = go.Figure()
     year = GV.LLY
     var_dict={}
@@ -240,7 +241,7 @@ def visualize_model_ww(model, ref_year_start):
 
 
             index = (np.arange(start, end + timedelta(days = 1), dtype='datetime64[D]'))
-            data = np.full(len(index), coeff)
+            data = np.full(len(index), coeff*train_df_mean[c])
             
             if v in var_dict:
                 var_dict[v].append(pd.Series(data=data,index=index))
@@ -259,12 +260,18 @@ def visualize_model_ww(model, ref_year_start):
         else:
             color='blue'
 
-        fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8),  showlegend=True))
+        name_str = '   <b>'+str(v)+'</b>'
+        y_str = '   %{y:.2f}'
+        x_str = '   %{x|%b %d}'
+        hovertemplate="<br>".join([v, y_str, x_str, "<extra></extra>"])
+
+        fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8), showlegend=True, hovertemplate=hovertemplate))
     
     # add today line
     fig.add_vline(x=seas_day(dt.today(), ref_year_start).timestamp() * 1000, line_dash="dash",line_width=1, annotation_text="Today", annotation_position="bottom")
-
-    fig.update_layout(height=750, legend=dict(orientation="h",yanchor="bottom",y=1.1,xanchor="left",x=0))
+    
+    hovermode='x unified' # ['x', 'y', 'closest', 'x unified', 'y unified']
+    fig.update_layout(height=750, legend=dict(orientation="h",yanchor="bottom",y=1.1,xanchor="left",x=0), hovermode=hovermode)
     fig.update_yaxes(zeroline=True, zerolinewidth=1, zerolinecolor='black')
     fig.update_xaxes(tickformat="%d %b")
     return fig
