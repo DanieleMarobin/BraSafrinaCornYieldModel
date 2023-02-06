@@ -57,7 +57,6 @@ if True:
     st.sidebar.markdown("# Model Settings")
     full_analysis=st.sidebar.checkbox('Full Analysis', value=False)
 
-
 # **************************** Calculation *********************************
 if True:
     r = gd.deserialize(file)
