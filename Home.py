@@ -118,28 +118,35 @@ if full_analysis:
 # Variables impact visualization & Coefficients
 if True:    
     st.markdown('---')
-    st.markdown('##### Variables impact visualization')
-    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start, train_df=train_df)
+    st.markdown('##### Selected Weather Windows')
+    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start, train_df=train_df, fuse_windows=False)
     st.plotly_chart(fig, use_container_width=True)
 
+    st.markdown('---')
+    st.markdown('##### Variables Impact')
+    fig = fu.visualize_model_ww(model=model, ref_year_start=ref_year_start, train_df=train_df, fuse_windows=True)
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown('---')
     st.markdown('##### Coefficients')
     st_model_coeff=pd.DataFrame(columns=model.params.index)
     st_model_coeff.loc[len(st_model_coeff)]=model.params.values
     st_model_coeff.index=['Model Coefficients']
-    st.dataframe(st_model_coeff, use_container_width=True)
-    st.markdown('---')
+    st.dataframe(st_model_coeff, use_container_width=True)    
 
 # Prediction DataSets
 if True:
-    for i, WD in enumerate(pred_df):
+    for i, WD in enumerate(pred_df):        
         first_cols=['Yield','year','const']
         sorted_cols= first_cols+list(set(pred_df[WD].columns)-set(first_cols))
-
         pred_df[WD]['Yield']=yields[WD] # Copying the yields in the df so that it is not an ugly NaN
-        st.markdown('##### Prediction DataSet - ' + WD)
-        st.dataframe(pred_df[WD][sorted_cols].drop(columns=['const']).sort_index(ascending=False), use_container_width=True)
 
-        if WD is not 'trend':
+        if WD != 'trend':
+            st.markdown('---')
+
+            st.markdown('##### Prediction DataSet - ' + WD)
+            # st.dataframe(pred_df[WD][sorted_cols].drop(columns=['const']).sort_index(ascending=False), use_container_width=True)
+
             yield_df=pd.concat([pred_df[WD], pred_df['trend']])
 
             yield_contribution=yield_df.drop(columns=['Yield']) * model.params            
@@ -155,11 +162,15 @@ if True:
             yield_contribution=yield_contribution[sorted_cols].drop(columns=['year'])
             yield_contribution.index=[WD,'trend',WD + ' Yield - Components', 'trend Yield - Components','Difference']
             
+            fig = fu.waterfall(yield_contribution)
+            st.plotly_chart(fig, use_container_width=True)
+
             st.dataframe(yield_contribution,use_container_width=True)
 
 
 # Training DataSet
 if True:
+    st.markdown('---')
     st.markdown('##### Training DataSet')
     st.dataframe(train_df.sort_index(ascending=False), use_container_width=True)
     st.markdown("---")

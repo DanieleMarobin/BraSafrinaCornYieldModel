@@ -220,7 +220,56 @@ def seas_day(date, ref_year_start= dt(GV.CUR_YEAR,1,1)):
         else:
             return dt(GV.LLY, date.month, date.day)
 
-def visualize_model_ww(model, ref_year_start, train_df=None):
+def waterfall(yield_contribution):
+    df= yield_contribution.loc['Difference':'Difference']
+    df=df.T
+
+    # Remove the 0s (because they give no contrinution to the yield change)
+    mask = abs(df['Difference'])>0
+    df=df[mask]
+    df=df.T
+
+    sorted_cols=[c for c in df.columns if c!='Yield']
+    sorted_cols.append('Yield')
+    df=df[sorted_cols]
+
+    measure=['relative']*(len(sorted_cols)-1)
+    measure.append('total')
+
+    y=list(df.values[0])
+    text = ['+'+ str(round(v,3)) if v > 0 else '-'+ str(abs(round(v,3))) for v in y]
+    text[-1]= 'Yield Difference vs Trend: <br>'+text[-1]
+
+    if y[-1]<0:
+        totals = {"marker":{"color":"darkred", "line":{"color":"red", "width":3}}}
+    else:
+        totals = {"marker":{"color":"darkgreen", "line":{"color":"green", "width":3}}}
+
+
+    fig = go.Figure(go.Waterfall(
+        orientation = 'v',
+        measure = measure,
+        x = sorted_cols,
+        textposition = 'auto',
+        text = text,
+        y = y,
+        totals=totals,
+        # connector = {"line":{"color":"rgb(63, 63, 63)"}},
+        ))
+                
+    return fig
+
+def visualize_model_ww(model, ref_year_start, train_df=None, fuse_windows=True):
+    '''
+    fuse_windows = True:
+        - it creates the aggregate of all the different windows of a certain variable:
+        - if there are 3 variables:
+            1) Precipitation in Jan-Feb
+            2) Precipitation in Feb-Mar
+            3) Precipitation in Mar-Apre
+                -> it will create a single line called Precipitation that will sum all the coefficients in the overlapping parts
+    '''
+
     train_df_mean=train_df.mean()
     fig = go.Figure()
     year = GV.LLY
@@ -239,7 +288,6 @@ def visualize_model_ww(model, ref_year_start, train_df=None):
             start = seas_day(d_start, ref_year_start)
             end = seas_day(d_end, ref_year_start)
 
-
             index = (np.arange(start, end + timedelta(days = 1), dtype='datetime64[D]'))
             data = np.full(len(index), coeff*train_df_mean[c])
             
@@ -248,11 +296,8 @@ def visualize_model_ww(model, ref_year_start, train_df=None):
             else:
                 var_dict[v]=[pd.Series(data=data,index=index)]
             
-
     var_dict.keys()
     for v, series_list in var_dict.items():
-        var_coeff=pd.concat(series_list,axis=1).sum(axis=1)
-
         if ('Temp' in v):
             color='orange'
         elif ('Sdd' in v):
@@ -263,9 +308,28 @@ def visualize_model_ww(model, ref_year_start, train_df=None):
         name_str = '   <b>'+str(v)+'</b>'
         y_str = '   %{y:.2f}'
         x_str = '   %{x|%b %d}'
-        hovertemplate="<br>".join([v, y_str, x_str, "<extra></extra>"])
+        hovertemplate="<br>".join([name_str, y_str, x_str, "<extra></extra>"])
+    
+        if fuse_windows:
+            var_coeff=pd.concat(series_list,axis=1).sum(axis=1)
+            fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8), showlegend=True, hovertemplate=hovertemplate))
+        else:
+            for sl in series_list:
+                if v in legend:
+                    showlegend=False
+                else:
+                    showlegend=True
+                legend.append(v)
 
-        fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8), showlegend=True, hovertemplate=hovertemplate))
+                if sl.values[0]<0.0:
+                    dash='dash'
+                else:
+                    dash=None
+
+                x=[sl.index[0],sl.index[-1]]
+                y=[sl.values[0],sl.values[-1]]
+                fig.add_trace(go.Scatter(x=x, y=y, name=v,mode='lines+markers', line=dict(width=2,color=color, dash=dash), marker=dict(size=8), showlegend=showlegend, hovertemplate=hovertemplate))
+
     
     # add today line
     fig.add_vline(x=seas_day(dt.today(), ref_year_start).timestamp() * 1000, line_dash="dash",line_width=1, annotation_text="Today", annotation_position="bottom")
