@@ -146,18 +146,19 @@ if True:
             st.markdown('##### Prediction DataSet - ' + WD)
             # st.dataframe(pred_df[WD][sorted_cols].drop(columns=['const']).sort_index(ascending=False), use_container_width=True)
 
-            yield_df=pd.concat([pred_df[WD], pred_df['trend']])
+            # simple Prediciton df. I take only the last row, because when calculating the full analysis it would have the whole season evolution
+            yield_pred=pd.concat([pred_df[WD][-1:], pred_df['trend'][-1:]])
 
-            yield_contribution=yield_df.drop(columns=['Yield']) * model.params            
+            # multiplying by coefficients to get the individual variables contribution
+            yield_contribution=yield_pred.drop(columns=['Yield']) * model.params            
             yield_contribution['Yield']=yield_contribution.sum(axis=1)
             yield_contribution['const']=yield_contribution['const']+yield_contribution['year']
             
             yield_contribution.index=[WD + ' Yield - Components', 'trend Yield - Components']
             
             yield_contribution.loc['Difference']=yield_contribution.loc[WD + ' Yield - Components']- yield_contribution.loc['trend Yield - Components']
-            # yield_contribution=yield_contribution.drop(columns=['year'])
 
-            yield_contribution=pd.concat([yield_df, yield_contribution])
+            yield_contribution=pd.concat([yield_pred, yield_contribution])
             yield_contribution=yield_contribution[sorted_cols].drop(columns=['year'])
             yield_contribution.index=[WD,'trend',WD + ' Yield - Components', 'trend Yield - Components','Difference']
             
