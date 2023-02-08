@@ -2,6 +2,7 @@ import re
 import numpy as np
 from datetime import datetime as dt
 from datetime import timedelta
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -220,6 +221,30 @@ def seas_day(date, ref_year_start= dt(GV.CUR_YEAR,1,1)):
         else:
             return dt(GV.LLY, date.month, date.day)
 
+def chart_actual_vs_model(model, train_df, y_col, x_col=None):
+    # fig = go.Figure()
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[1,0.4])
+    if x_col is None:
+        x=train_df.index
+    else:
+        x=train_df[x_col]
+
+    y_actu=train_df[y_col]
+    y_pred= model.predict(train_df[model.params.index])
+    y_diff=100*(y_pred-y_actu)/y_actu
+    
+    
+    fig.add_trace(go.Scatter(x=x, y=y_actu,mode='lines+markers', line=dict(width=1,color='black'), marker=dict(size=5), name='Actual'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=x, y=y_pred,mode='lines+markers', line=dict(width=1,color='blue'), marker=dict(size=5), name='Model'), row=1, col=1)
+    fig.add_trace(go.Bar(x=x, y=y_diff, name='Error (%)'), row=2, col=1)
+
+    hovermode='x unified' # ['x', 'y', 'closest', 'x unified', 'y unified']
+
+    fig.update_layout(height=750, hovermode=hovermode)
+
+
+    return fig
+        
 def waterfall(yield_contribution):
     df= yield_contribution.loc['Difference':'Difference']
     df=df.T
@@ -330,7 +355,6 @@ def visualize_model_ww(model, ref_year_start, train_df=None, fuse_windows=True):
                 y=[sl.values[0],sl.values[-1]]
                 fig.add_trace(go.Scatter(x=x, y=y, name=v,mode='lines+markers', line=dict(width=2,color=color, dash=dash), marker=dict(size=8), showlegend=showlegend, hovertemplate=hovertemplate))
 
-    
     # add today line
     fig.add_vline(x=seas_day(dt.today(), ref_year_start).timestamp() * 1000, line_dash="dash",line_width=1, annotation_text="Today", annotation_position="bottom")
     

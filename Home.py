@@ -167,6 +167,13 @@ if True:
 
             st.dataframe(yield_contribution,use_container_width=True)
 
+# Actual vs Model Yield
+if True:
+    st.markdown('---')
+    st.markdown('##### Actual vs Model')
+    fig = fu.chart_actual_vs_model(model=model, train_df=train_df, y_col='Yield')
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("---")
 
 # Training DataSet
 if True:
