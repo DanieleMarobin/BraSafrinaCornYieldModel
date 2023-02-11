@@ -179,7 +179,8 @@ def weighted_w_df_old(w_df, weights, w_vars=[], output_column='Weighted', ref_ye
 
     # Add missing years
     missing_weights = list(set(w_df_years) - set(weights_years))
-    weight_mean=weights.mean() # WIP (this one is wrong)
+    weight_mean=weights.mean()
+    weight_mean=weight_mean/weight_mean.sum()
 
     # print(missing_weights)
 
@@ -226,9 +227,8 @@ def weighted_w_df(w_df, weights, w_vars=[], output_column='Weighted', ref_year=G
 
     missing_weights = list(set(w_df_years) - set(weights_years))
 
-    weight_mean=weights.mean() # WIP (this one is wrong)
-    # print('weight_mean')
-    # print(weight_mean)
+    weight_mean=weights.mean()
+    weight_mean=weight_mean/weight_mean.sum()
 
     for m in missing_weights:
         weights.loc[m]=weight_mean
@@ -497,8 +497,6 @@ def extend_with_seasonal_df(w_df_to_ext, cols_to_extend=[], seas_cols_to_use=[],
 
             # Trasfer the "timeline" to the CUR_YEAR
             # that is probably different from the seasonals pivot, because it uses the LLY (Last Leap Year)
-
-            # seas['time'] = [dt(year=ext_year, month=x.month, day=x.day) for x in seas.index] # old and wrong
 
             year_offset = ref_year - seas.index[-1].year            
             seas['time'] = [dt(year=x.year+year_offset, month=x.month, day=x.day) for x in seas.index]
