@@ -66,10 +66,10 @@ import GLOBAL as GV
 
 import warnings; warnings.filterwarnings("ignore")
 
-
-ref_year=2023
-ref_year_start=dt(ref_year-1,9,1)
-
+# General Settings
+if True:
+    ref_year=2023
+    ref_year_start=dt(ref_year-1,9,1)
 
 def Define_Scope():
     """
