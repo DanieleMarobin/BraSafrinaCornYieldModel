@@ -13,7 +13,6 @@ import Corn_BRA_Safrina_Yield_GA as mb
 
 import GDrive as gd
 
-
 import GLOBAL as GV
 import func as fu
 

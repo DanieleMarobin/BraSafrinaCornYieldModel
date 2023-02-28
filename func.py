@@ -295,7 +295,11 @@ def visualize_model_ww(model, ref_year_start, train_df=None, fuse_windows=True):
                 -> it will create a single line called Precipitation that will sum all the coefficients in the overlapping parts
     '''
 
-    train_df_mean=train_df.mean()
+    if train_df is None:
+        data=[1]*len(model.params)
+        train_df_mean= pd.Series(data=data, index=model.params.index)
+    else:
+        train_df_mean=train_df.mean()
     fig = go.Figure()
     year = GV.LLY
     var_dict={}
@@ -320,8 +324,7 @@ def visualize_model_ww(model, ref_year_start, train_df=None, fuse_windows=True):
                 var_dict[v].append(pd.Series(data=data,index=index))
             else:
                 var_dict[v]=[pd.Series(data=data,index=index)]
-            
-    var_dict.keys()
+                
     for v, series_list in var_dict.items():
         if ('Temp' in v):
             color='orange'
@@ -337,6 +340,7 @@ def visualize_model_ww(model, ref_year_start, train_df=None, fuse_windows=True):
     
         if fuse_windows:
             var_coeff=pd.concat(series_list,axis=1).sum(axis=1)
+            var_coeff=var_coeff.resample('1D').asfreq()
             fig.add_trace(go.Scatter(x=var_coeff.index , y=var_coeff.values, name=v,mode='lines', line=dict(width=2,color=color, dash=None), marker=dict(size=8), showlegend=True, hovertemplate=hovertemplate))
         else:
             for sl in series_list:
