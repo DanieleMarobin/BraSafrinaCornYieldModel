@@ -231,8 +231,7 @@ def chart_actual_vs_model(model, train_df, y_col, x_col=None):
 
     y_actu=train_df[y_col]
     y_pred= model.predict(train_df[model.params.index])
-    y_diff=100*(y_pred-y_actu)/y_actu
-    
+    y_diff=100*(y_pred-y_actu)/y_actu    
     
     fig.add_trace(go.Scatter(x=x, y=y_actu,mode='lines+markers', line=dict(width=1,color='black'), marker=dict(size=5), name='Actual'), row=1, col=1)
     fig.add_trace(go.Scatter(x=x, y=y_pred,mode='lines+markers', line=dict(width=1,color='blue'), marker=dict(size=5), name='Model'), row=1, col=1)
@@ -241,7 +240,6 @@ def chart_actual_vs_model(model, train_df, y_col, x_col=None):
     hovermode='x unified' # ['x', 'y', 'closest', 'x unified', 'y unified']
 
     fig.update_layout(height=750, hovermode=hovermode)
-
 
     return fig
         
