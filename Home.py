@@ -170,7 +170,10 @@ if True:
 if True:
     st.markdown('---')
     st.markdown('##### Actual vs Model')
-    fig = fu.chart_actual_vs_model(model=model, train_df=train_df, y_col='Yield')
+    WD='hist_ecmwfEn'
+    pred_df[WD]=pred_df[WD].set_index('year',drop=False)
+    train_pred_df=pd.concat([pred_df[WD], train_df]).sort_index(ascending=False)
+    fig = fu.chart_actual_vs_model(model=model, df=train_pred_df, y_col='Yield', plot_last_actual=False)
     st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
 
