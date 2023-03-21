@@ -75,6 +75,7 @@ def get_BRA_prod_weights(states=['MT','PR','GO'], product='MILHO', crop='1ª SAF
     fo=get_BRA_conab_data(states=states, product=product, crop=crop, years=years, conab_df=conab_df)
 
     fo = pd.pivot_table(fo,values='Production',index='State',columns='year')
+    fo.index=['BRA-'+s for s in fo.index]
 
     fo=fo/fo.sum()
 

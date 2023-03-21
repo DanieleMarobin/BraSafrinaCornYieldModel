@@ -77,7 +77,6 @@ def build_w_df_all(df_w_sel, w_vars=[GV.WV_PREC,GV.WV_TEMP_MAX], in_files=GV.WS_
     sel_hist_fore = [GV.WD_HIST, GV.WD_GFS]
         - must contain HIST and at least one forecast to make sense
     """
-    
 
     if GV.WV_SDD_30 in w_vars:
         w_vars.append(GV.WV_TEMP_MAX)
@@ -98,8 +97,8 @@ def build_w_df_all(df_w_sel, w_vars=[GV.WV_PREC,GV.WV_TEMP_MAX], in_files=GV.WS_
         for index, row in df_w_sel.iterrows():
             for v in w_vars:
                 if v != GV.WV_SDD_30: # becuase I don't save 'derivative variables files'
-                    file = row[in_files]+'_'+v+'_'+key+'.csv'
-                    col = row[out_cols]+'_'+v
+                    file = row['country_alpha'] + '-' +row[in_files]+'_'+v+'_'+key+'.csv'
+                    col = row['country_alpha'] + '-' + row[out_cols]+'_'+v
                     dict_col_file[col] = file
 
         # reading the files
@@ -125,8 +124,8 @@ def build_w_df_all(df_w_sel, w_vars=[GV.WV_PREC,GV.WV_TEMP_MAX], in_files=GV.WS_
         for index, row in df_w_sel.iterrows():
             for v in w_vars:
                 if v != GV.WV_SDD_30: # becuase I don't save 'derivative variables files'
-                    file = row[in_files]+'_'+v+'_'+key+'.csv'
-                    col = row[out_cols]+'_'+v
+                    file = row['country_alpha'] + '-' +row[in_files]+'_'+v+'_'+key+'.csv'
+                    col = row['country_alpha'] + '-' +row[out_cols]+'_'+v
                     dict_col_file[col] = file
 
         # reading the files
