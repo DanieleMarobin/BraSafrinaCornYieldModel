@@ -222,7 +222,7 @@ def seas_day(date, ref_year_start= dt(GV.CUR_YEAR,1,1)):
         else:
             return dt(GV.LLY, date.month, date.day)
 
-def chart_actual_vs_model(model, df, y_col, x_col=None, plot_last_actual=False):
+def chart_actual_vs_model(model, df, y_col, x_col=None, plot_last_actual=False, height=None):
     '''
     plot_last_actual=False
         - sometimes the last row is the the prediction (so it is better not to show it as 'actual')
@@ -253,7 +253,7 @@ def chart_actual_vs_model(model, df, y_col, x_col=None, plot_last_actual=False):
 
     hovermode='x unified' # ['x', 'y', 'closest', 'x unified', 'y unified']
 
-    fig.update_layout(height=750, hovermode=hovermode)
+    fig.update_layout(height=height, hovermode=hovermode)
 
     return fig
         
